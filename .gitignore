@@ -30,6 +30,8 @@ replay_pid*
 __pycache__/
 *.pyc
 venv/
+.venv-rvl/
+data/
 
 # IDE
 .idea/
