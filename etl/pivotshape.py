@@ -47,6 +47,14 @@ contract_text = df.groupby('title')['context'].first()
 final_df = pivot[['risk_score']].join(contract_text)
 final_df = final_df.reset_index()  # 'title' becomes a normal column
 
+# Derive a simple risk label from the numeric score for downstream reporting
+final_df['risk_label'] = pd.cut(
+    final_df['risk_score'],
+    bins=[-1, 2, 4, 10],
+    labels=['Low', 'Medium', 'High'],
+    right=True
+)
+
 print(final_df.shape)
 print(final_df.head(2))
 print(final_df['context'].str.len().describe())  # check text length spread
@@ -65,9 +73,15 @@ def get_risk_text(title_group, max_words_per_clause=20):
 risk_text = df.groupby('title').apply(get_risk_text)
 
 final_df = pivot[['risk_score']].join(risk_text.rename('risk_text')).reset_index()
+final_df['risk_label'] = pd.cut(
+    final_df['risk_score'],
+    bins=[-1, 2, 4, 10],
+    labels=['Low', 'Medium', 'High'],
+    right=True
+)
 
 print(final_df['risk_text'].str.len().describe())
-print(final_df[['title', 'risk_score', 'risk_text']].head(2))
+print(final_df[['title', 'risk_score', 'risk_text', 'risk_label']].head(2))
 
 tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
 token_lengths = final_df['risk_text'].apply(
@@ -95,3 +109,5 @@ tokenized_dataset = hf_dataset.map(
 
 print(tokenized_dataset)
 print(tokenized_dataset[0].keys())
+
+print(final_df['risk_label'].value_counts())
