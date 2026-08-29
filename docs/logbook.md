@@ -75,3 +75,23 @@ Configured AWS CLI and created the S3 bucket (auditlens-doc-lake) with Object Lo
 
 **WHAT WAS DONE:**
 Designed and created the SQL Server schema — Users, Documents, DocumentVersions, and AuditLog tables. Added a Status field to Documents (Draft/UnderReview/RevisionRequested/Approved/Locked), the mechanism that determines when Object Lock is applied — only on approval, per mentor feedback, not automatically on upload.
+
+### [29/08/26]
+**SESSION 004 —**
+**Member: Bhargav**
+**Phase: NLP Data Preparation (Week 2)**
+
+**WHAT WAS DONE:**
+Corrected initial dataset loading error — 'cuad' loaded only raw PDFs with no labels; switched to 'theatticusproject/cuad-qa', the correctly labeled variant (22,450 QA-format rows across 408 contracts, 41 clause categories).
+
+Reconstructed per-contract structure from the QA format by pivoting on contract title, producing one row per contract with True/False presence across all 41 clause categories.
+
+Selected 10 risk-relevant clause categories (Anti-Assignment, Audit Rights, Change Of Control, Most Favored Nation, Non-Compete, Uncapped Liability, Exclusivity, Termination For Convenience, Ip Ownership Assignment, Liquidated Damages) and computed a risk_score (0–8) per contract based on how many of these clauses are present. Verified the resulting distribution was well-spread (mean 3.04, std 2.08), not clustered at a single value.
+
+Identified that using full contract text (mean ~54,000 characters) was far beyond BERT's 512-token input limit. Replaced full-text input with concatenated risk-clause text spans only (the actual flagged clause snippets, not the whole document), reducing average length substantially. Iteratively capped each clause snippet to 20 words to bring the majority of contracts within tokenizer limits, applying standard 512-token truncation as a safeguard for the remaining outliers (172 of 408 contracts, ~42%).
+
+Converted the continuous risk_score into a 3-class classification label (Low: 0–2, Medium: 3–5, High: 6–8) to make the task more robust given the limited dataset size (408 contracts). Verified class balance: Low 179, Medium 126, High 103 — no class is under-represented.
+
+Completed tokenization using BERT tokenizer (truncation=True, max_length=512, padding='max_length'). Dataset is now in fine-tuning-ready format (input_ids, attention_mask, token_type_ids, risk_label).
+
+**Next:** Train/test split and fine-tuning loop (BERT/FinBERT sequence classification, 3-class risk prediction).
