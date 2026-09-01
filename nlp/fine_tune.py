@@ -2,6 +2,7 @@ import re
 import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from datasets import Dataset, load_from_disk
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
@@ -130,7 +131,7 @@ model = AutoModelForSequenceClassification.from_pretrained(
     label2id=label2id,
 )
 
-args = TrainingArguments(
+training_args = TrainingArguments(
     output_dir=str(ROOT / 'results'),
     eval_strategy='epoch',
     save_strategy='epoch',
@@ -146,7 +147,7 @@ args = TrainingArguments(
 
 trainer = Trainer(
     model=model,
-    args=args,
+    args=training_args,
     train_dataset=train_dataset,
     eval_dataset=test_dataset,
     compute_metrics=compute_metrics,
@@ -154,3 +155,4 @@ trainer = Trainer(
 
 trainer.train()
 print(trainer.evaluate())
+
