@@ -95,3 +95,28 @@ Converted the continuous risk_score into a 3-class classification label (Low: 0�
 Completed tokenization using BERT tokenizer (truncation=True, max_length=512, padding='max_length'). Dataset is now in fine-tuning-ready format (input_ids, attention_mask, token_type_ids, risk_label).
 
 **Next:** Train/test split and fine-tuning loop (BERT/FinBERT sequence classification, 3-class risk prediction).
+
+
+### 
+**SESSION 005 — [09/09/26]**
+**Member: Bhargav**
+**Phase: NLP Fine-Tuning & Evaluation (Week 2- Week 4)**
+
+**WHAT WAS DONE:**
+Fine-tuned BERT for 5 epochs on the risk-classification task. Initial unweighted training 
+(macro F1 0.51) showed a confusion-matrix pattern where the model systematically 
+under-predicted High-risk contracts, misclassifying 18 of 21 as Medium — the most 
+consequential error type for a compliance tool, since it means missed violations.
+
+Applied class-weighted loss to correct this. Iterated across three weight configurations 
+([1.5, 2.5], [1.3, 1.6], [1.6, 1.6]) to find a balance where all three risk classes 
+retain meaningful precision and recall, rather than the model collapsing toward a 
+single dominant class. Final configuration ([1.0, 1.6, 1.6]) achieved High-risk 
+recall of 0.86 (up from 0.14 unweighted) while keeping Low and Medium above zero, 
+though Medium remains the weakest class (F1: 0.23) — likely due to its position 
+between Low and High creating textual overlap with both.
+
+**Honest limitation:** With only 408 labeled contracts, performance is constrained 
+by dataset size rather than model architecture. Further improvement would require 
+more labeled training data. Current model prioritizes catching High-risk contracts 
+(most consequential error to avoid) at some cost to Medium-class precision.
