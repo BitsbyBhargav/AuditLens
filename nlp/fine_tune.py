@@ -4,9 +4,16 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import torch
 from datasets import Dataset, load_from_disk
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    precision_recall_fscore_support,
+)
 from sklearn.model_selection import train_test_split
+from torch.nn import CrossEntropyLoss
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -145,7 +152,20 @@ training_args = TrainingArguments(
     report_to='none',
 )
 
-trainer = Trainer(
+class_weights = torch.tensor([1.0, 1.6, 1.6])
+
+
+class WeightedTrainer(Trainer):
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
+        labels = inputs.pop('labels')
+        outputs = model(**inputs)
+        logits = outputs.logits
+        loss_fct = CrossEntropyLoss(weight=class_weights.to(logits.device))
+        loss = loss_fct(logits.view(-1, 3), labels.view(-1))
+        return (loss, outputs) if return_outputs else loss
+
+
+trainer = WeightedTrainer(
     model=model,
     args=training_args,
     train_dataset=train_dataset,
@@ -154,5 +174,14 @@ trainer = Trainer(
 )
 
 trainer.train()
-print(trainer.evaluate())
 
+# After training, run final evaluation explicitly
+eval_results = trainer.evaluate()
+print(eval_results)
+
+predictions = trainer.predict(test_dataset)
+preds = np.argmax(predictions.predictions, axis=1)
+labels = predictions.label_ids
+
+print(confusion_matrix(labels, preds))
+print(classification_report(labels, preds, target_names=['Low', 'Medium', 'High']))
