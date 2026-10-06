@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Review ' + ${d.fileName})}"></head>
+<body>
+<div class="shell">
+  <aside th:replace="~{fragments :: sidebar}"></aside>
+  <main class="main">
+    <div th:replace="~{fragments :: flash}"></div>
+    <header class="page-head">
+      <div>
+        <p class="crumb"><a th:href="@{/review}">Review queue</a></p>
+        <h1 class="doc-title" th:text="${d.fileName}">file</h1>
+        <p class="lede" th:text="'Submitted by ' + ${d.uploadedBy.name} + ' on ' + ${@dates.format(d.uploadedAt)} + ', version ' + ${d.versionNumber}"></p>
+      </div>
+      <a class="btn" th:href="@{/documents/{id}(id=${d.id})}">Full history</a>
+    </header>
+
+    <div class="review-grid">
+      <section class="panel reader">
+        <h2>Document text</h2>
+        <pre class="doc-text" th:if="${preview != null}" th:text="${preview}">text</pre>
+        <p class="note" th:if="${preview == null}">Preview is available for text files only. This is a PDF or Word file.</p>
+      </section>
+
+      <div class="stack-lg">
+        <section th:replace="~{fragments :: riskPanel(${d}, ${clauses})}"></section>
+
+        <section class="panel decision" th:unless="${ownDocument}">
+          <h2>Your decision</h2>
+          <form th:action="@{/review/{id}/approve(id=${d.id})}" method="post" class="stack">
+            <label for="approve-notes">Note for the record (optional)</label>
+            <textarea id="approve-notes" name="notes" rows="2"></textarea>
+            <button class="btn btn-primary" type="submit"
+                    onclick="return confirm('Approving locks this version permanently. It cannot be edited or unlocked. Continue?')">Approve and lock</button>
+            <p class="fine">Locking is permanent. Later changes need a new document.</p>
+          </form>
+          <hr>
+          <form th:action="@{/review/{id}/revise(id=${d.id})}" method="post" class="stack">
+            <label for="revise-notes">What needs to change</label>
+            <textarea id="revise-notes" name="notes" rows="3" required></textarea>
+            <button class="btn" type="submit">Request revision</button>
+          </form>
+        </section>
+        <p class="note" th:if="${ownDocument}">You submitted this document, so someone else has to review it.</p>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

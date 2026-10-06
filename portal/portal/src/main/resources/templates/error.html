@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Something went wrong')}"></head>
+<body class="login-page">
+<main class="login login-single">
+  <section class="login-card">
+    <th:block th:switch="${status}">
+      <th:block th:case="403">
+        <h2>No access to this page</h2>
+        <p class="muted">Your role cannot open this page or document.</p>
+      </th:block>
+      <th:block th:case="404">
+        <h2>Page not found</h2>
+        <p class="muted">Check the address, or go back to your home page.</p>
+      </th:block>
+      <th:block th:case="*">
+        <h2>Something went wrong</h2>
+        <p class="muted">The request could not be completed. The server log has the details.</p>
+      </th:block>
+    </th:block>
+    <a class="btn btn-primary" th:href="@{/}">Go to your home page</a>
+  </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${d.fileName})}"></head>
+<body>
+<div class="shell">
+  <aside th:replace="~{fragments :: sidebar}"></aside>
+  <main class="main">
+    <div th:replace="~{fragments :: flash}"></div>
+    <header class="page-head">
+      <div>
+        <p class="crumb" th:text="'Document ' + ${d.id} + ', version ' + ${d.versionNumber} + ', submitted by ' + ${d.uploadedBy.name}"></p>
+        <h1 class="doc-title" th:text="${d.fileName}">file</h1>
+      </div>
+      <span th:replace="~{fragments :: status(${d.status})}"></span>
+    </header>
+
+    <ol class="rail" aria-label="Document lifecycle">
+      <li th:each="s : ${steps}" th:class="${'rail-step is-' + s.state()}">
+        <span class="rail-dot" aria-hidden="true"></span>
+        <span th:text="${s.name()}">step</span>
+      </li>
+    </ol>
+
+    <div class="detail-grid">
+      <div class="stack-lg">
+        <section class="panel panel-attention" th:if="${d.status.name() == 'RevisionRequested'}">
+          <h2>Revision requested</h2>
+          <p th:text="${d.reviewerNotes}">notes</p>
+          <form th:if="${isOwner}" th:action="@{/employee/documents/{id}/resubmit(id=${d.id})}" method="post"
+                enctype="multipart/form-data" class="stack">
+            <label for="file">Upload the revised file</label>
+            <input id="file" name="file" type="file" accept=".pdf,.docx,.txt" required>
+            <button class="btn btn-primary" type="submit">Submit new version</button>
+          </form>
+        </section>
+
+        <a class="btn btn-primary" th:if="${isReviewer and d.status.name() == 'UnderReview'}"
+           th:href="@{/review/{id}(id=${d.id})}">Open review</a>
+
+        <section th:replace="~{fragments :: riskPanel(${d}, ${clauses})}"></section>
+
+        <section class="panel" th:if="${d.reviewerNotes != null and d.status.name() != 'RevisionRequested'}">
+          <h2>Reviewer notes</h2>
+          <p th:text="${d.reviewerNotes}"></p>
+        </section>
+
+        <section class="panel">
+          <h2>Versions</h2>
+          <table class="compact">
+            <thead><tr><th>Version</th><th>File</th><th>Submitted</th><th>SHA-256</th></tr></thead>
+            <tbody>
+            <tr th:each="v : ${versions}">
+              <td th:text="${v.versionNumber}"></td>
+              <td th:text="${v.fileName}"></td>
+              <td th:text="${v.submittedBy.name} + ', ' + ${@dates.format(v.submittedAt)}"></td>
+              <td><code class="hash" th:title="${v.contentHash}" th:text="${#strings.substring(v.contentHash, 0, 16)} + '…'"></code></td>
+            </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+      <div class="stack-lg">
+        <section class="seal" th:classappend="${d.locked} ? 'seal-on' : 'seal-off'">
+          <div class="seal-mark" aria-hidden="true"><span th:text="${d.locked} ? 'Sealed' : 'Open'"></span></div>
+          <div class="seal-body">
+            <h2 th:text="${d.locked} ? 'Locked against change' : 'Not locked yet'">Seal</h2>
+            <p th:if="${d.locked}" th:text="'Locked ' + ${@dates.format(d.lockedAt)} + '. The file is read-only and its fingerprint is on record.'"></p>
+            <p th:unless="${d.locked}">It locks the moment a reviewer approves it. Until then it can be sent back for revision.</p>
+            <p class="fine">Fingerprint (SHA-256)</p>
+            <code class="hash hash-block" th:text="${d.contentHash}">hash</code>
+            <form th:action="@{/documents/{id}/verify(id=${d.id})}" method="post">
+              <button class="btn" type="submit">Check the file against its fingerprint</button>
+            </form>
+            <div th:if="${integrity != null}" class="verdict"
+                 th:classappend="${integrity.matches()} ? 'verdict-ok' : 'verdict-bad'" role="status">
+              <strong th:text="${integrity.matches()} ? 'File unchanged.' : 'File has changed since it was recorded.'"></strong>
+              <span th:text="${integrity.readOnly()} ? 'Storage is read-only.' : 'Storage is still writable.'"></span>
+            </div>
+            <p class="fine" th:if="${d.locked}">Local demo: read-only file flag. In production this is S3 Object Lock in Compliance mode.</p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>History</h2>
+          <ol class="timeline">
+            <li th:each="e : ${trail}">
+              <div class="tl-head">
+                <strong th:text="${e.action.label}">action</strong>
+                <span class="muted" th:text="${e.actorName}">who</span>
+              </div>
+              <div class="fine" th:text="${@dates.format(e.timestamp)}"></div>
+              <p class="tl-note" th:if="${e.notes}" th:text="${e.notes}"></p>
+            </li>
+          </ol>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

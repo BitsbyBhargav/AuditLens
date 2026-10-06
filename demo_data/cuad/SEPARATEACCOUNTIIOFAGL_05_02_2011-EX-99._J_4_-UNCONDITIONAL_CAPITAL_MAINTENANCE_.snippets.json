@@ -1,0 +1,10 @@
+{
+  "title": "SEPARATEACCOUNTIIOFAGL_05_02_2011-EX-99.(J)(4)-UNCONDITIONAL CAPITAL MAINTENANCE AGREEMENT",
+  "split": "test",
+  "risk_score": 1,
+  "risk_label": "Low",
+  "clauses": {
+    "Termination For Convenience": "AIG shall have the absolute right to terminate this Agreement upon thirty (30) days' prior written notice to the Company,"
+  },
+  "model_input": "Unconditional Capital Maintenance Agreement American International Group, Inc. American General Life Insurance Company AIG Company March 30, 2011 March 30, 2011 To the extent not terminated previously by AIG pursuant to the foregoing, this Agreement will terminate automatically one year after Unless earlier terminated in accordance with this paragraph 8, this Agreement shall continue indefinitely. This Agreement shall be governed by and construed in accordance with the laws of New York, without giving effect to AIG shall have the absolute right to terminate this Agreement upon thirty (30) days' prior written notice to the Company, This Agreement is not, and nothing herein contained and nothing done pursuant hereto by AIG shall constitute or be construed This Agreement does not provide, and is not intended to be construed or deemed to provide, any policyholder of the"
+}
