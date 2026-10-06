@@ -30,8 +30,11 @@ replay_pid*
 __pycache__/
 *.pyc
 venv/
+.venv/
 .venv-rvl/
 data/
+/storage/
+/results/checkpoint-41/
 
 # IDE
 .idea/

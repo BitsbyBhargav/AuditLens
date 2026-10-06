@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Audit trail')}"></head>
+<body>
+<div class="shell">
+  <aside th:replace="~{fragments :: sidebar}"></aside>
+  <main class="main">
+    <header class="page-head">
+      <div>
+        <h1>Audit trail</h1>
+        <p class="lede">Every action on every document, newest first. Entries are added, never edited. Infrastructure-level events will come from AWS CloudTrail in the cloud phase.</p>
+      </div>
+    </header>
+    <div class="empty" th:if="${#lists.isEmpty(entries)}">
+      <h2>No activity yet</h2>
+      <p>Actions appear here as soon as someone submits a document.</p>
+    </div>
+    <div class="table-wrap" th:if="${!#lists.isEmpty(entries)}">
+      <table>
+        <thead><tr><th>When</th><th>Document</th><th>Action</th><th>By</th><th>Details</th></tr></thead>
+        <tbody>
+        <tr th:each="e : ${entries}" th:classappend="${e.action.name() == 'IntegrityCheckFailed'} ? 'row-alarm'">
+          <td class="nowrap" th:text="${@dates.format(e.timestamp)}"></td>
+          <td><a th:href="@{/documents/{id}(id=${e.document.id})}" th:text="${e.document.fileName}">doc</a></td>
+          <td th:text="${e.action.label}"></td>
+          <td th:text="${e.actorName}"></td>
+          <td class="details" th:text="${e.notes}"></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+</body>
+</html>

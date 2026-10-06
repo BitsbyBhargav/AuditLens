@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' | AuditLens'">AuditLens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<aside th:fragment="sidebar" class="sidebar">
+  <a class="brand" th:href="@{/}"><span class="brand-mark" aria-hidden="true"></span>AuditLens</a>
+  <nav class="nav" aria-label="Main">
+    <th:block sec:authorize="hasRole('Employee')">
+      <a th:href="@{/employee}" th:classappend="${nav == 'mine'} ? 'active'">My documents</a>
+      <a th:href="@{/employee/upload}" th:classappend="${nav == 'upload'} ? 'active'">Submit a document</a>
+    </th:block>
+    <th:block sec:authorize="hasRole('ReviewerCompliance')">
+      <a th:href="@{/review}" th:classappend="${nav == 'queue'} ? 'active'">Review queue</a>
+      <a th:href="@{/audit}" th:classappend="${nav == 'audit'} ? 'active'">Audit trail</a>
+    </th:block>
+  </nav>
+  <div class="who" th:if="${me != null}">
+    <div class="who-name" th:text="${me.name}">Name</div>
+    <div class="who-role" th:text="${me.role.label}">Role</div>
+    <form th:action="@{/logout}" method="post"><button class="link-button" type="submit">Sign out</button></form>
+  </div>
+</aside>
+
+<div th:fragment="flash">
+  <p class="flash flash-ok" th:if="${notice}" th:text="${notice}" role="status"></p>
+  <p class="flash flash-error" th:if="${error}" th:text="${error}" role="alert"></p>
+</div>
+
+<span th:fragment="status(s)" class="badge" th:classappend="${'badge-' + s.css}" th:text="${s.label}">Status</span>
+
+<span th:fragment="risk(label)" class="risk"
+      th:classappend="${label != null ? 'risk-' + #strings.toLowerCase(label) : 'risk-none'}"
+      th:text="${label != null ? label : 'Not scored'}">Risk</span>
+
+<section th:fragment="riskPanel(d, clauses)" class="panel">
+  <h2>Risk assessment</h2>
+  <dl class="facts" th:if="${d.riskScore != null}">
+    <div>
+      <dt>Model prediction</dt>
+      <dd>
+        <span th:replace="~{fragments :: risk(${d.riskLabel})}"></span>
+        <span class="muted" th:if="${d.riskConfidence != null}"
+              th:text="${#numbers.formatInteger(d.riskConfidence * 100, 1)} + '% confidence'"></span>
+      </dd>
+    </div>
+    <div>
+      <dt>Risk clauses present</dt>
+      <dd><strong th:text="${#numbers.formatInteger(d.riskScore, 1)} + ' of 10'"></strong>
+        <span class="muted" th:text="'which the scoring rule maps to ' + ${d.ruleLabel}"></span></dd>
+    </div>
+  </dl>
+  <p class="note" th:if="${d.classificationNote}" th:text="${d.classificationNote}"></p>
+  <th:block th:if="${!#maps.isEmpty(clauses)}">
+    <h3>Flagged clauses</h3>
+    <ul class="clauses">
+      <li th:each="c : ${clauses}">
+        <span class="clause-name" th:text="${c.key}">Clause</span>
+        <mark th:text="${c.value}">snippet</mark>
+      </li>
+    </ul>
+    <p class="fine">Snippets are the first 20 words of each clause, taken from CUAD's lawyer annotations.</p>
+  </th:block>
+</section>
+
+</body>
+</html>
