@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('My documents')}"></head>
+<body>
+<div class="shell">
+  <aside th:replace="~{fragments :: sidebar}"></aside>
+  <main class="main">
+    <div th:replace="~{fragments :: flash}"></div>
+    <header class="page-head">
+      <div>
+        <h1>My documents</h1>
+        <p class="lede" th:if="${!#lists.isEmpty(documents)}">
+          <span th:text="${inReview}">0</span> under review,
+          <span th:text="${needsRevision}">0</span> waiting on you,
+          <span th:text="${locked}">0</span> locked.
+        </p>
+      </div>
+      <a class="btn btn-primary" th:href="@{/employee/upload}">Submit a document</a>
+    </header>
+
+    <div class="empty" th:if="${#lists.isEmpty(documents)}">
+      <h2>Nothing submitted yet</h2>
+      <p>Submit a contract and it goes straight to the compliance review queue.</p>
+      <a class="btn btn-primary" th:href="@{/employee/upload}">Submit a document</a>
+    </div>
+
+    <div class="table-wrap" th:if="${!#lists.isEmpty(documents)}">
+      <table>
+        <thead><tr><th>Document</th><th>Submitted</th><th>Version</th><th>Model risk</th><th>Status</th></tr></thead>
+        <tbody>
+        <tr th:each="d : ${documents}" th:classappend="${d.status.name() == 'RevisionRequested'} ? 'row-attention'">
+          <td>
+            <a th:href="@{/documents/{id}(id=${d.id})}" th:text="${d.fileName}">file</a>
+            <div class="row-note" th:if="${d.status.name() == 'RevisionRequested'}" th:text="'Reviewer: ' + ${d.reviewerNotes}"></div>
+          </td>
+          <td th:text="${@dates.format(d.uploadedAt)}"></td>
+          <td th:text="${d.versionNumber}"></td>
+          <td><span th:replace="~{fragments :: risk(${d.riskLabel})}"></span></td>
+          <td><span th:replace="~{fragments :: status(${d.status})}"></span></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+</body>
+</html>

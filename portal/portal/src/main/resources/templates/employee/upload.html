@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Submit a document')}"></head>
+<body>
+<div class="shell">
+  <aside th:replace="~{fragments :: sidebar}"></aside>
+  <main class="main">
+    <div th:replace="~{fragments :: flash}"></div>
+    <header class="page-head">
+      <div>
+        <h1>Submit a document</h1>
+        <p class="lede">Submitted documents go to compliance review. Nothing is locked until a reviewer approves it.</p>
+      </div>
+    </header>
+
+    <div class="two-col">
+      <section class="panel">
+        <h2>Import a CUAD contract</h2>
+        <p>These contracts come from the held-out test split of the CUAD dataset. Each one is risk-scored from its annotated clauses.</p>
+        <p class="service" th:classappend="${classifierUp} ? 'service-up' : 'service-down'"
+           th:text="${classifierUp} ? 'Risk model is running' : 'Risk model is not running. Contracts will import with a clause count only. Start nlp/serve.py to get model predictions.'"></p>
+        <form th:if="${!#lists.isEmpty(contracts)}" th:action="@{/employee/import-cuad}" method="post" class="stack">
+          <label for="contractId">Contract</label>
+          <select id="contractId" name="contractId" required>
+            <option th:each="c : ${contracts}" th:value="${c.id()}"
+                    th:text="${c.title()} + ' (' + ${c.clauseCount()} + ' risk clauses)'">contract</option>
+          </select>
+          <button class="btn btn-primary" type="submit">Import and send for review</button>
+        </form>
+        <p class="note" th:if="${#lists.isEmpty(contracts)}">
+          No prepared contracts found in <code th:text="${cuadDir}">dir</code>. Run the CUAD preparation script first.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Upload your own file</h2>
+        <p>PDF, Word or text, up to 20 MB. Your file is stored and fingerprinted, but not risk-scored: automatic clause extraction is not built yet, so the reviewer judges risk.</p>
+        <form th:action="@{/employee/upload}" method="post" enctype="multipart/form-data" class="stack">
+          <label for="file">File</label>
+          <input id="file" name="file" type="file" accept=".pdf,.docx,.txt" required>
+          <button class="btn" type="submit">Upload and send for review</button>
+        </form>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

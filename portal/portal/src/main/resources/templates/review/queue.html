@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Review queue')}"></head>
+<body>
+<div class="shell">
+  <aside th:replace="~{fragments :: sidebar}"></aside>
+  <main class="main">
+    <div th:replace="~{fragments :: flash}"></div>
+    <header class="page-head">
+      <div>
+        <h1>Review queue</h1>
+        <p class="lede">
+          <span th:text="${#lists.size(queue)}">0</span> waiting, oldest first.
+          <span th:text="${revisionCount}">0</span> sent back for revision,
+          <span th:text="${lockedCount}">0</span> locked so far.
+        </p>
+      </div>
+    </header>
+
+    <div class="empty" th:if="${#lists.isEmpty(queue)}">
+      <h2>The queue is clear</h2>
+      <p>New submissions appear here as soon as they're uploaded.</p>
+    </div>
+
+    <div class="table-wrap" th:if="${!#lists.isEmpty(queue)}">
+      <table>
+        <thead><tr><th>Document</th><th>Submitted by</th><th>Waiting</th><th>Model risk</th><th>Risk clauses</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="d : ${queue}">
+          <td>
+            <span th:text="${d.fileName}">file</span>
+            <div class="row-note" th:if="${d.versionNumber > 1}" th:text="'Version ' + ${d.versionNumber} + ', resubmitted'"></div>
+          </td>
+          <td th:text="${d.uploadedBy.name}"></td>
+          <td th:text="${@dates.waiting(d.uploadedAt)}"></td>
+          <td><span th:replace="~{fragments :: risk(${d.riskLabel})}"></span></td>
+          <td th:text="${d.riskScore != null} ? ${#numbers.formatInteger(d.riskScore, 1)} + ' of 10' : 'n/a'"></td>
+          <td><a class="btn btn-small" th:href="@{/review/{id}(id=${d.id})}">Review</a></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+</body>
+</html>
