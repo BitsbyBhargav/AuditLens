@@ -20,6 +20,9 @@ public class SecurityConfig {
                 .requestMatchers("/employee/**").hasRole("Employee")
                 .requestMatchers("/review/**", "/audit/**").hasRole("ReviewerCompliance")
                 .anyRequest().authenticated())
+            // Same-origin framing lets the review page show a PDF beside the risk panel.
+            // Other sites still cannot frame the portal.
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .formLogin(form -> form
                 .loginPage("/login")
                 .usernameParameter("email")
