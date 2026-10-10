@@ -17,9 +17,19 @@
 
     <div class="review-grid">
       <section class="panel reader">
-        <h2>Document text</h2>
-        <pre class="doc-text" th:if="${preview != null}" th:text="${preview}">text</pre>
-        <p class="note" th:if="${preview == null}">Preview is available for text files only. This is a PDF or Word file.</p>
+        <h2>Document</h2>
+        <th:block th:with="isPdf=${#strings.endsWith(#strings.toLowerCase(d.fileName), '.pdf')}">
+          <pre class="doc-text" th:if="${preview != null}" th:text="${preview}">text</pre>
+          <iframe th:if="${isPdf}" th:src="@{/documents/{id}/file(id=${d.id})}" title="PDF document"
+                  style="flex:1;width:100%;min-height:62vh;border:1px solid #D5DBE5;border-radius:6px;background:#fff"></iframe>
+          <p class="note" th:if="${preview == null and !isPdf}">
+            Word files can't be shown in the browser.
+            <a th:href="@{/documents/{id}/file(id=${d.id})}">Download the file</a> to read it.
+          </p>
+        </th:block>
+        <p class="fine" th:if="${preview == null}">
+          <a th:href="@{/documents/{id}/file(id=${d.id})}" target="_blank" rel="noopener">Open the original in a new tab</a>
+        </p>
       </section>
 
       <div class="stack-lg">
